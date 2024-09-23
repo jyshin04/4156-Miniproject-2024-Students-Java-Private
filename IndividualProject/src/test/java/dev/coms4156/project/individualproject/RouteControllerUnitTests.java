@@ -3,6 +3,7 @@ package dev.coms4156.project.individualproject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,32 @@ public class RouteControllerUnitTests {
     String expectedBody = 
             "\nInstructor: Ansaf Salleb-Aouissi; Location: 301 URIS; Time: 10:10-11:25";
     assertEquals(expectedBody, responseEntity.getBody());
+  }
+  
+  @Test
+  public void retrieveCoursesTest() {
+    ResponseEntity<?> responseEntityNotFound = testrouteController.retrieveCourses(9999);
+    assertEquals(HttpStatus.NOT_FOUND, responseEntityNotFound.getStatusCode());
+    assertEquals("No courses with the given course code found.", responseEntityNotFound.getBody());
+
+    ResponseEntity<?> responseEntityFound = testrouteController.retrieveCourses(1001);
+    assertEquals(HttpStatus.OK, responseEntityFound.getStatusCode());
+
+    HashMap<String, Department> departmentMapping;
+    departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+    ArrayList<String> expectedCourses = new ArrayList<>();
+
+    for (Department dept : departmentMapping.values()) {
+      HashMap<String, Course> coursesMapping = dept.getCourseSelection();
+      String courseCodeStr = Integer.toString(1001);
+      if (coursesMapping.containsKey(courseCodeStr)) {
+        Course course = coursesMapping.get(courseCodeStr);
+        expectedCourses.add(course.toString());
+      }
+    }
+
+    String expectedBody = expectedCourses.toString();
+    assertEquals(expectedBody, responseEntityFound.getBody());
   }
 
   @Test
@@ -115,6 +142,29 @@ public class RouteControllerUnitTests {
               testrouteController.removeMajorFromDept("COSM").getStatusCode());
     assertEquals(HttpStatus.OK,
               testrouteController.removeMajorFromDept("COMS").getStatusCode());
+  }
+
+  @Test
+  public void enrollStudentInCourseTest() {
+    ResponseEntity<?> responseEntityNotFound;
+    responseEntityNotFound = testrouteController.enrollStudentInCourse("COSM", 9999);
+    assertEquals(HttpStatus.NOT_FOUND, responseEntityNotFound.getStatusCode());
+    assertEquals("Course Not Found", responseEntityNotFound.getBody());
+
+    ResponseEntity<?> responseEntityEnrolled;
+    responseEntityEnrolled = testrouteController.enrollStudentInCourse("COMS", 3203);
+    assertEquals(HttpStatus.OK, responseEntityEnrolled.getStatusCode());
+    assertEquals("Student has been enrolled.", responseEntityEnrolled.getBody());
+
+    HashMap<String, Department> departmentMapping;
+    departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+    HashMap<String, Course> coursesMapping = departmentMapping.get("COMS").getCourseSelection();
+    Course course = coursesMapping.get("3203");
+    course.setEnrolledStudentCount(250);
+    ResponseEntity<?> responseEntityFull = testrouteController.enrollStudentInCourse("COMS", 3203);
+    assertEquals(HttpStatus.BAD_REQUEST, responseEntityFull.getStatusCode());
+    assertEquals("Cannot enroll student.", responseEntityFull.getBody());
+    course.setEnrolledStudentCount(215);
   }
 
   @Test
