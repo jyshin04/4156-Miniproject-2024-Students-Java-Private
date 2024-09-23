@@ -3,6 +3,7 @@ package dev.coms4156.project.individualproject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,31 @@ public class RouteControllerUnitTests {
             "\nInstructor: Ansaf Salleb-Aouissi; Location: 301 URIS; Time: 10:10-11:25";
     assertEquals(expectedBody, responseEntity.getBody());
   }
+  
+  @Test
+  public void retrieveCoursesTest() {
+    ResponseEntity<?> responseEntityNotFound = testrouteController.retrieveCourses(9999);
+    assertEquals(HttpStatus.NOT_FOUND, responseEntityNotFound.getStatusCode());
+    assertEquals("No courses with the given course code found.", responseEntityNotFound.getBody());
+
+    ResponseEntity<?> responseEntityFound = testrouteController.retrieveCourses(1001);
+    assertEquals(HttpStatus.OK, responseEntityFound.getStatusCode());
+
+    HashMap<String, Department> departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+    ArrayList<String> expectedCourses = new ArrayList<>();
+
+    for (Department dept : departmentMapping.values()) {
+        HashMap<String, Course> coursesMapping = dept.getCourseSelection();
+        String courseCodeStr = Integer.toString(1001);
+        if (coursesMapping.containsKey(courseCodeStr)) {
+            Course course = coursesMapping.get(courseCodeStr);
+            expectedCourses.add(course.toString());
+        }
+    }
+
+    String expectedBody = expectedCourses.toString();
+    assertEquals(expectedBody, responseEntityFound.getBody());
+}
 
   @Test
   public void isCourseFullTest() {
