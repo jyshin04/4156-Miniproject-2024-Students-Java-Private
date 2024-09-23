@@ -1,5 +1,6 @@
 package dev.coms4156.project.individualproject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,8 +59,7 @@ public class RouteController {
 
   /**
    * Displays the details of the requested course to the user or displays the
-   * proper error
-   * message in response to the request.
+   * proper error message in response to the request.
    *
    * @param deptCode   A {@code String} representing the department the user
    *                   wishes
@@ -70,8 +70,7 @@ public class RouteController {
    *
    * @return A {@code ResponseEntity} object containing either the details of the
    *         course and an HTTP 200 response or, an appropriate message indicating
-   *         the
-   *         proper response.
+   *         the proper response.
    */
   @GetMapping(value = "/retrieveCourse", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> retrieveCourse(@RequestParam(value = "deptCode") String deptCode,
@@ -97,6 +96,43 @@ public class RouteController {
       return handleException(e);
     }
   }
+  
+  /**
+   * Displays the details of the requested course (using courseCode only) to the user or 
+   * displays the proper error message in response to the request.
+   *
+   * @param courseCode A {@code int} representing the course the user wishes
+   *                   to retrieve.
+   *
+   * @return A {@code ResponseEntity} object containing either the details of the
+   *         course and an HTTP 200 response or, an appropriate message indicating
+   *         the proper response.
+   */
+  @GetMapping(value = "/retrieveCourses", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> retrieveCourses(@RequestParam("courseCode") int courseCode) {
+    try {
+        HashMap<String, Department> departmentMapping = 
+            IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+        ArrayList<String> matchingCourses = new ArrayList<>();
+
+        for (Department dept : departmentMapping.values()) {
+            HashMap<String, Course> coursesMapping = dept.getCourseSelection();
+            String courseCodeStr = Integer.toString(courseCode);
+            if (coursesMapping.containsKey(courseCodeStr)) {
+                Course course = coursesMapping.get(courseCodeStr);
+                matchingCourses.add(course.toString());
+            }
+        }
+
+        if (matchingCourses.isEmpty()) {
+            return new ResponseEntity<>("No courses with the given course code found.", HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<>(matchingCourses.toString(), HttpStatus.OK);
+        }
+    } catch (Exception e) {
+        return this.handleException(e);
+    }
+}
 
   /**
    * Displays whether the course has at minimum reached its enrollmentCapacity.
