@@ -132,6 +132,7 @@ public class RouteController {
     } catch (Exception e) {
         return this.handleException(e);
     }
+
 }
 
   /**
@@ -403,6 +404,48 @@ public class RouteController {
       return handleException(e);
     }
   }
+
+/**
+   * Attempts to enroll a student to the specified course.
+   *
+   * @param deptCode   A {@code String} representing the department.
+   *
+   * @param courseCode A {@code int} representing the course within the
+   *                   department.
+   *
+   * @return A {@code ResponseEntity} object containing an HTTP 200
+   *         response with an appropriate message or the proper status
+   *         code in tune with what has happened.
+   */
+@PatchMapping(value = {"/enrollStudentInCourse"}, produces = {"application/json"})
+public ResponseEntity<?> enrollStudentInCourse(@RequestParam("deptCode") String deptCode, 
+      @RequestParam("courseCode") int courseCode) {
+    try {
+        boolean doesCourseExist;
+        doesCourseExist = this.retrieveCourse(deptCode, courseCode).getStatusCode() == HttpStatus.OK;
+
+        if (doesCourseExist) {
+            HashMap<String, Department> departmentMapping;
+            departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+            HashMap<String, Course> coursesMapping;
+            coursesMapping = departmentMapping.get(deptCode).getCourseSelection();
+
+            Course requestedCourse = coursesMapping.get(Integer.toString(courseCode));
+            boolean isStudentEnrolled = requestedCourse.enrollStudent();
+
+            if (isStudentEnrolled) {
+                return new ResponseEntity<>("Student has been enrolled.", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Cannot enroll student.", HttpStatus.BAD_REQUEST);
+            }
+
+        } else {
+            return new ResponseEntity<>("Course Not Found", HttpStatus.NOT_FOUND);
+        }
+    } catch (Exception e) {
+        return this.handleException(e);
+    }
+}
 
   /**
    * Attempts to drop a student from the specified course.
