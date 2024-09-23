@@ -65,21 +65,22 @@ public class RouteControllerUnitTests {
     ResponseEntity<?> responseEntityFound = testrouteController.retrieveCourses(1001);
     assertEquals(HttpStatus.OK, responseEntityFound.getStatusCode());
 
-    HashMap<String, Department> departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+    HashMap<String, Department> departmentMapping;
+    departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
     ArrayList<String> expectedCourses = new ArrayList<>();
 
     for (Department dept : departmentMapping.values()) {
-        HashMap<String, Course> coursesMapping = dept.getCourseSelection();
-        String courseCodeStr = Integer.toString(1001);
-        if (coursesMapping.containsKey(courseCodeStr)) {
-            Course course = coursesMapping.get(courseCodeStr);
-            expectedCourses.add(course.toString());
-        }
+      HashMap<String, Course> coursesMapping = dept.getCourseSelection();
+      String courseCodeStr = Integer.toString(1001);
+      if (coursesMapping.containsKey(courseCodeStr)) {
+        Course course = coursesMapping.get(courseCodeStr);
+        expectedCourses.add(course.toString());
+      }
     }
 
     String expectedBody = expectedCourses.toString();
     assertEquals(expectedBody, responseEntityFound.getBody());
-}
+  }
 
   @Test
   public void isCourseFullTest() {
@@ -145,15 +146,18 @@ public class RouteControllerUnitTests {
 
   @Test
   public void enrollStudentInCourseTest() {
-    ResponseEntity<?> responseEntityNotFound = testrouteController.enrollStudentInCourse("COSM", 9999);
+    ResponseEntity<?> responseEntityNotFound;
+    responseEntityNotFound = testrouteController.enrollStudentInCourse("COSM", 9999);
     assertEquals(HttpStatus.NOT_FOUND, responseEntityNotFound.getStatusCode());
     assertEquals("Course Not Found", responseEntityNotFound.getBody());
 
-    ResponseEntity<?> responseEntityEnrolled = testrouteController.enrollStudentInCourse("COMS", 3203);
+    ResponseEntity<?> responseEntityEnrolled;
+    responseEntityEnrolled = testrouteController.enrollStudentInCourse("COMS", 3203);
     assertEquals(HttpStatus.OK, responseEntityEnrolled.getStatusCode());
     assertEquals("Student has been enrolled.", responseEntityEnrolled.getBody());
 
-    HashMap<String, Department> departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
+    HashMap<String, Department> departmentMapping;
+    departmentMapping = IndividualProjectApplication.myFileDatabase.getDepartmentMapping();
     HashMap<String, Course> coursesMapping = departmentMapping.get("COMS").getCourseSelection();
     Course course = coursesMapping.get("3203");
     course.setEnrolledStudentCount(250);
@@ -161,7 +165,7 @@ public class RouteControllerUnitTests {
     assertEquals(HttpStatus.BAD_REQUEST, responseEntityFull.getStatusCode());
     assertEquals("Cannot enroll student.", responseEntityFull.getBody());
     course.setEnrolledStudentCount(215);
-}
+  }
 
   @Test
   public void dropStudentTest() {
