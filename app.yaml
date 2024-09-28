@@ -1,0 +1,6 @@
+runtime: java17
+
+entrypoint: java -jar .mv/wrapper/maven-wrapper.jar
+
+instance_class: F1
+
